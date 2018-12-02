@@ -46,20 +46,27 @@ class GraphToolBox:
 
         return c_graph
 
-    # The distribution of the edges weights are heavy tailed so we assume that they are close enough to
-    # power law distributions and that the top 20% of them are the most significant
+    # The distribution of the edges weights are heavy tailed so we assume that they are close
+    # enough to power law distributions and that the top 20% of them are the most significant
     # so far this approach works better with top_threshold = 20
     @staticmethod
-    def graph_edge_node_cleaning(graph, top_threshold=20):
-        print("Cleaning insignificant edges and nodes")
+    def graph_edge_cleaning(graph, top_threshold=0):
+        print("Cleaning insignificant edges and isolated nodes")
         all_weights = []
         for edge in graph.edges.data():
             all_weights.append(tuple([edge[0], edge[1], edge[2]['weight']]))
         # Sorting based on the third tuple element (weights)
         all_weights.sort(key=lambda tup: tup[2])
         edge_num = len(all_weights)
-        # We will keep the top 20% of the edges
-        top_twenty = int(edge_num / 5)
+
+        # We will keep the top threshold% of the edges
+        # converting % to fraction
+        if top_threshold == 0:
+            denominator = 1
+        else:
+            denominator = 100 / top_threshold
+
+        top_twenty = int(edge_num / denominator)
         bottom_edges = all_weights[:-top_twenty]
         for edge_tuple in bottom_edges:
             graph.remove_edge(edge_tuple[0], edge_tuple[1])
@@ -74,13 +81,13 @@ class GraphToolBox:
         return last_sig_edge, last_sig_sig_edge
 
     @staticmethod
-    def generate_gephi_graphs(graph_list, path, r_type="", e_type=""):
+    def generate_gephi_graphs(graph_list, path, thresh=0, r_type="", e_type=""):
         print("Generating Gephi graphs.")
         # Checking if the directories exist and if
         # not we create them
-        if not os.path.exists(path + "/" + r_type):
-            os.makedirs(path + r_type)
-        path = path + r_type
+        if not os.path.exists(path + "/" + r_type + "_" + str(thresh)):
+            os.makedirs(path + "/" + r_type + "_" + str(thresh))
+        path = path + "/" + r_type + "_" + str(thresh)
         if not os.path.exists(path + "/" + e_type):
             os.makedirs(path + "/" + e_type)
         path = path + "/" + e_type

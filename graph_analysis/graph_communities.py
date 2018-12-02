@@ -81,19 +81,19 @@ class CommunityTool:
 
         return sig_com_graphs
 
-    def handle_communities(self):
+    def handle_communities(self, threshold=0):
         key_graph = self.graph_toolbox.form_graph(self.read_p, self.relation, self.entities)
-
-        _, sig_sig_e = self.graph_toolbox.graph_edge_node_cleaning(key_graph, top_threshold=20)
+        _, sig_sig_e = self.graph_toolbox.graph_edge_cleaning(key_graph, top_threshold=threshold)
         print("Working on Louvain community detection")
         communities = community.best_partition(key_graph, weight='weight')
         coms_with_perc = self.calculate_percentages(communities)
         sig_graphs = self.split_coms(coms_with_perc, key_graph, sig_sig_e)
-        self.graph_toolbox.generate_gephi_graphs(sig_graphs, self.write_p, self.relation, self.entities)
+        self.graph_toolbox.generate_gephi_graphs(sig_graphs, self.write_p, threshold, self.relation, self.entities)
 
 
 if __name__ == "__main__":
-    input_path = "/home/iraklis/PycharmProjects/Climate_Articles/IO_files/Graphs/"
+    input_path = "/home/iraklis/PycharmProjects/Climate_Articles/IO_files/Graphs/Raw_Graphs/"
     output_path = "/home/iraklis/PycharmProjects/Climate_Articles/IO_files/Graphs/Communities/"
-    community_worker = CommunityTool(input_path, output_path, "Merged", "PLO")
-    community_worker.handle_communities()
+    # output_path = "/home/iraklis/PycharmProjects/Climate_Articles/IO_files/Graphs/Shrinked_Graphs"
+    community_worker = CommunityTool(input_path, output_path, "Merged", "L")
+    community_worker.handle_communities(20)
