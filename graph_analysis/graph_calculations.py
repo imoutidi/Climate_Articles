@@ -2,16 +2,16 @@ import time
 import networkx as nx
 
 from graph_analysis import graph_tools
-from ToolPack import tools
+from tool_pack import tools
 
 
 def metrics_calc(entity_type, f_path):
     entity_names = list()
 
-    g_tool = graph_tools.GraphTool()
+    g_tool = graph_tools.GraphToolBox()
 
     # Loading the graph from CSV files
-    climate_graph = g_tool.form_graph("Merged", entity_type, f_path)
+    climate_graph = g_tool.form_graph(f_path, "Merged", entity_type)
 
     for idx, node in climate_graph.nodes.items():
         entity_names.append(node['name'])

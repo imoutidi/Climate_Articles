@@ -1,4 +1,4 @@
-from ToolPack import tools
+from tool_pack import tools
 from graph_creation import relations_scores
 
 
