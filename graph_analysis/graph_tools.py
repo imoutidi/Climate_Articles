@@ -48,7 +48,7 @@ class GraphToolBox:
 
     # The distribution of the edges weights are heavy tailed so we assume that they are close
     # enough to power law distributions and that the top 20% of them are the most significant
-    # so far this approach works better with top_threshold = 20
+    # The top_threshold represents the percentage of the graph edge that we are going to keep.
     @staticmethod
     def graph_edge_cleaning(graph, top_threshold=0):
         print("Cleaning insignificant edges and isolated nodes")
@@ -66,18 +66,22 @@ class GraphToolBox:
         else:
             denominator = 100 / top_threshold
 
-        top_twenty = int(edge_num / denominator)
-        bottom_edges = all_weights[:-top_twenty]
+        bottom_twenty = int(edge_num / denominator)
+        bottom_edges = all_weights[:-bottom_twenty]
+        bb = len(bottom_edges)
         for edge_tuple in bottom_edges:
             graph.remove_edge(edge_tuple[0], edge_tuple[1])
         # removing nodes with no edges
         # the list is a workaround for a bug:
         # https://stackoverflow.com/questions/48820586/removing-isolated-vertices-in-networkx
         graph.remove_nodes_from(list(nx.isolates(graph)))
-        # sig edges exist for removing unimportant edges from the graph
-        # sig sig edges exist for overlapping communities splits
-        last_sig_edge = all_weights[-top_twenty][2]
-        last_sig_sig_edge = all_weights[-int(top_twenty / top_threshold)][2]
+        # lastsig edges exist for removing unimportant edges from the graph
+        last_sig_edge = all_weights[-bottom_twenty][2]
+        # last sig sig edges exist for overlapping communities splits
+        # It will be used to compare edges of overlapping nodes
+        # if an edge has bigger value the node will be part of both communities that
+        # the edge connects
+        last_sig_sig_edge = all_weights[-int(bottom_twenty / denominator)][2]
         return last_sig_edge, last_sig_sig_edge
 
     @staticmethod
@@ -85,12 +89,14 @@ class GraphToolBox:
         print("Generating Gephi graphs.")
         # Checking if the directories exist and if
         # not we create them
-        if not os.path.exists(path + "/" + r_type + "_" + str(thresh)):
-            os.makedirs(path + "/" + r_type + "_" + str(thresh))
-        path = path + "/" + r_type + "_" + str(thresh)
-        if not os.path.exists(path + "/" + e_type):
-            os.makedirs(path + "/" + e_type)
-        path = path + "/" + e_type
+        relation_path = path + "/" + r_type + "_" + str(thresh)
+        if not os.path.exists(relation_path):
+            os.makedirs(relation_path)
+        path = relation_path
+        entity_path = path + "/" + e_type
+        if not os.path.exists(entity_path):
+            os.makedirs(entity_path)
+        path = entity_path
 
         for idx, graph in enumerate(graph_list):
             # a = [x for x in graph.nodes.data()]
@@ -104,3 +110,9 @@ class GraphToolBox:
                 edge_file.write('Source,Target,Weight\n')
                 for edge in graph.edges.data():
                     edge_file.write(str(edge[0]) + "," + str(edge[1]) + "," + str(edge[2]['weight']) + "\n")
+
+    def shrink_graph(self, read_path, write_path, threshold=0, relation="", entities=""):
+        graph = self.form_graph(read_path, relation, entities)
+        self.graph_edge_cleaning(graph, top_threshold=threshold)
+        self.generate_gephi_graphs([graph], write_path, threshold, relation, entities)
+        return graph

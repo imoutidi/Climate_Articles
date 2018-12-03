@@ -94,6 +94,8 @@ class CommunityTool:
 if __name__ == "__main__":
     input_path = "/home/iraklis/PycharmProjects/Climate_Articles/IO_files/Graphs/Raw_Graphs/"
     output_path = "/home/iraklis/PycharmProjects/Climate_Articles/IO_files/Graphs/Communities/"
-    # output_path = "/home/iraklis/PycharmProjects/Climate_Articles/IO_files/Graphs/Shrinked_Graphs"
-    community_worker = CommunityTool(input_path, output_path, "Merged", "L")
-    community_worker.handle_communities(20)
+    out_path = "/home/iraklis/PycharmProjects/Climate_Articles/IO_files/Graphs/Shrinked_Graphs"
+    # community_worker = CommunityTool(input_path, output_path, "Merged", "L")
+    # community_worker.handle_communities(threshold=20)
+    tool_box = graph_tools.GraphToolBox()
+    tool_box.shrink_graph(input_path, out_path, threshold=80, relation="Merged", entities="L")
