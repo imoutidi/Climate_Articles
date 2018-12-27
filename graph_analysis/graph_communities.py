@@ -34,11 +34,10 @@ class CommunityTool:
             com_sets.append(set(com_list[0]))
         return com_sets
 
-    # Adds nodes that belong to overlapping communities in more than one if the
-    # edges connecting it to another community are significant enough
+    # Adds nodes that belong to overlapping communities in more than one community
+    # if the edges connecting it to another community are significant enough
     @staticmethod
     def reshuffle_nodes(sig_coms, graph, sig_sig_e, cmty_sets):
-        # print(graph._node[0]['name'])
         new_nodes_dict = dict()
         for sig_n in sig_coms:
             new_nodes_dict[sig_n] = set()
@@ -68,9 +67,12 @@ class CommunityTool:
         sig_com_graphs = []
         insig_coms_key = []
         sig_coms_key = []
+        # if a communities contains nodes that exceed a given percentage of the total
+        # graph nodes we consider it as a significant community
+        com_perc_significance = 0.05
         community_sets = self.create_com_sets(coms)
         for cmnty_num, perc_nodes in coms.items():
-            if perc_nodes[1] < 0.05:
+            if perc_nodes[1] < com_perc_significance:
                 insig_coms_key.append(cmnty_num)
             else:
                 sig_coms_key.append(cmnty_num)
@@ -94,8 +96,9 @@ class CommunityTool:
 if __name__ == "__main__":
     input_path = "/home/iraklis/PycharmProjects/Climate_Articles/IO_files/Graphs/Raw_Graphs/"
     output_path = "/home/iraklis/PycharmProjects/Climate_Articles/IO_files/Graphs/Communities/"
-    out_path = "/home/iraklis/PycharmProjects/Climate_Articles/IO_files/Graphs/Shrinked_Graphs"
-    # community_worker = CommunityTool(input_path, output_path, "Merged", "L")
-    # community_worker.handle_communities(threshold=20)
-    tool_box = graph_tools.GraphToolBox()
-    tool_box.shrink_graph(input_path, out_path, threshold=80, relation="Merged", entities="L")
+    # out_path = "/home/iraklis/PycharmProjects/Climate_Articles/IO_files/Graphs/Shrinked_Graphs"
+    community_worker = CommunityTool(input_path, output_path, "Merged", "PLO")
+    community_worker.handle_communities(threshold=20)
+    # tool_box = graph_tools.GraphToolBox()
+    # tool_box.shrink_graph(input_path, out_path, threshold=10, relation="Sentence", entities="PLO")
+    # TODO make an analysis calculate metrics

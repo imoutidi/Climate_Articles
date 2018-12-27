@@ -24,7 +24,9 @@ class GraphToolBox:
 
         next(csv_reader)
         for idx, row in enumerate(csv_reader):
-            node_dict[idx] = row[1]
+            node_dict[int(row[0])] = row[1]
+            # bug found and corrected keep next line for review
+            # node_dict[idx] = row[1]
         return node_dict
 
     @staticmethod
@@ -37,6 +39,27 @@ class GraphToolBox:
         print("Creating Graph from .csv")
         nodes_dict = self.read_nodes_csv(path + r_type + "/Nodes" + e_type + ".csv")
         edges_list = self.read_edges_csv(path + r_type + "/Edges" + e_type + ".csv")
+
+        # Adding nodes to graph
+        c_graph = nx.Graph()
+        for key in nodes_dict:
+            c_graph.add_node(key, name=nodes_dict[key])
+        c_graph.add_weighted_edges_from(edges_list)
+
+        # TODO debug code delete when you are done
+        # with open("/home/iraklis/PycharmProjects/Climate_Articles/IO_files/Debug/nodes", "w") as node_out:
+        #     for a, b in c_graph.nodes(data=True):
+        #         if 'name' in b:
+        #             node_out.write(str(a) + b['name'] + "\n")
+        #         else:
+        #             node_out.write(str(a) + "found one\n")
+
+        return c_graph
+
+    def only_path_form_graph(self, edge_path, node_path):
+        print("Creating Graph from .csv")
+        nodes_dict = self.read_nodes_csv(node_path)
+        edges_list = self.read_edges_csv(edge_path)
 
         # Adding nodes to graph
         c_graph = nx.Graph()
@@ -59,8 +82,9 @@ class GraphToolBox:
         all_weights.sort(key=lambda tup: tup[2])
         edge_num = len(all_weights)
 
-        # We will keep the top threshold% of the edges
-        # converting % to fraction
+        # We will keep the top threshold % of the edges
+        # converting % to fraction. If the threshold is
+        # 0 we are keeping the whole graph
         if top_threshold == 0:
             denominator = 1
         else:
@@ -77,9 +101,9 @@ class GraphToolBox:
         graph.remove_nodes_from(list(nx.isolates(graph)))
         # lastsig edges exist for removing unimportant edges from the graph
         last_sig_edge = all_weights[-bottom_twenty][2]
-        # last sig sig edges exist for overlapping communities splits
-        # It will be used to compare edges of overlapping nodes
-        # if an edge has bigger value the node will be part of both communities that
+        # last_sig_sig_edge exist for overlapping communities splits
+        # It will be used to compare edges of overlapping nodes if an edge has a big enough
+        # value (>last_sig_sig_edge)the node will be part of both communities that
         # the edge connects
         last_sig_sig_edge = all_weights[-int(bottom_twenty / denominator)][2]
         return last_sig_edge, last_sig_sig_edge
