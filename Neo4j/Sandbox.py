@@ -1,6 +1,7 @@
 from neo4j.v1 import GraphDatabase
 from py2neo import Graph, Node
 import csv
+import time
 
 
 class HelloWorldExample(object):
@@ -51,23 +52,31 @@ def graph_to_neodb():
 
 
 def insert_nodes_to_neodb(neo_graph):
-    # node_path = "/home/iraklis/PycharmProjects/Climate_Articles/IO_files/Graphs/Raw_Graphs/Merged/NodesPLO.csv"
-    test_node_path = "/home/iraklis/PycharmProjects/Climate_Articles/Neo4j/Test_Files/test_graph_1/nodes.csv"
+    queries_per_transaction = 1000  # 1000 seems to work faster
+    node_path = "/home/iraklis/PycharmProjects/Climate_Articles/IO_files/Graphs/Raw_Graphs/Merged/NodesPLO.csv"
+    # test_node_path = "/home/iraklis/PycharmProjects/Climate_Articles/IO_files/Graphs/Raw_Graphs/Merged/NodesL.csv"
     graph = Graph("bolt://localhost:7687", user="neo4j", password="2113")
-
     trans_action = graph.begin()
 
-    with open(test_node_path) as csvfile:
+    with open(node_path) as csvfile:
         next(csvfile)   # labels of the columns
         node_csv = csv.reader(csvfile, delimiter=',')
         for idx, row in enumerate(node_csv):
-            # statement = "Create(n{id:{A} ,label:{B}})"
-            # trans_action.append(statement, {"A": row[0], "B": row[1]})
-            trans_action.create(Node("Entity", id=row[0], label=row[1]))
+            statement = "CREATE (n:Entity {id:{A} , label:{B}, name:{B}})"  # name is for visual reasons (neo4j)
+            transaction_cursor = trans_action.run(statement, {"A": row[0], "B": row[1]})
 
-            # if idx % 1000 == 0:
+            if idx % queries_per_transaction == 0:
+                trans_action.commit()
+                trans_action = graph.begin()
+
+        # Commit the left over queries
         trans_action.commit()
-            # trans_action = graph.begin()
+
+        # We need to create indexes on a seperate transaction
+        # neo4j.exceptions.Forbidden: Cannot perform schema updates in a transaction that has performed data updates.
+        trans_action = graph.begin()
+        trans_action.run("create constraint on (o:Entity) assert o.id is unique;")
+        trans_action.commit()
 
 
 def insert_edges_to_neodb(neo_graph):
@@ -81,10 +90,11 @@ def insert_edges_to_neodb(neo_graph):
         next(csvfile)   # labels of the columns
         edge_csv = csv.reader(csvfile, delimiter=',')
         for idx, row in enumerate(edge_csv):
-
+            trans_action.run("")
 
 
 if __name__ == "__main__":
-    insert_nodes_to_neodb()
-
-
+    a = 1
+    start_time = time.time()
+    insert_nodes_to_neodb(a)
+    print("--- %s seconds ---" % (time.time() - start_time))
