@@ -98,7 +98,7 @@ if __name__ == "__main__":
     output_path = "/home/iraklis/PycharmProjects/Climate_Articles/IO_files/Graphs/Communities/"
     # out_path = "/home/iraklis/PycharmProjects/Climate_Articles/IO_files/Graphs/Shrinked_Graphs"
     community_worker = CommunityTool(input_path, output_path, "Merged", "PLO")
-    community_worker.handle_communities(threshold=20)
+    community_worker.handle_communities(threshold=30)
     # tool_box = graph_tools.GraphToolBox()
     # tool_box.shrink_graph(input_path, out_path, threshold=10, relation="Sentence", entities="PLO")
     # TODO make an analysis calculate metrics
